@@ -1,0 +1,75 @@
+  //Hardware connections:
+  //Connect the 5V pin to 5 Volts (5V).
+  //Connect the Signal pin to ANALOG pin 0.
+  //Connect the GND pin to ground (GND).
+
+const int temperaturePin = 0;
+//The pin used for signal from sensor, but any "analog in" pins can be used
+
+void setup()
+{ 
+  Serial.begin(9600);
+  //Average communication speed in bits per second
+  //When running on serial monitor, make sure the baud rate
+  //is the same on both ends.
+}
+
+float getVoltage(int pin)
+{
+  //This function is for the signal pin.
+  
+  return (analogRead(pin) * 0.004882814);
+  
+  //This equation converts the 0 to 1023 value that analogRead()
+  //returns, into a 0.0 to 5.0 value that is the true voltage
+  //being read at that pin.
+}
+
+void loop()
+{
+
+  float voltage, degreesC;
+
+  //Used to measure voltage returned, then calculate to degrees in Celsius
+
+  voltage = getVoltage(temperaturePin);
+  
+  //Now we'll convert the voltage to degrees Celsius.
+  //This formula is derived from the temperature sensor datasheet:
+  if(voltage <= 0.5) {
+    degreesC = 0;
+  }
+  if((voltage > 0.5) && (voltage <= 4.5)) {
+    degreesC = (voltage/0.005) - 100.0;
+  }
+  else{
+    degreesC = 800;
+  }
+  //Since the Brake Temperature sensor reads from 0-800 degrees Celsius,
+  //and it only reads between 0.5-4.5V but outputs from 0-5V,
+  //there is an unused buffer voltage from 0-0.5V and 4.5-5V.
+  //In addition, the signal is stated to be 5mV/Celsius.
+  //So, the formula used divides the voltage by 5mV to get
+  //the value in Celsius, then subtracts by 100 to account
+  //for the unused range between 0-0.5V and begin the
+  //temperature reading at 0.5V. To make sure the sensor
+  //does not give an inaccurate value, an if/else statement
+  //is used. If the voltage is below 0.5V or above 4.5V,
+  //it will only display the rated minimum and maximum
+  //temperature. Since it cannot read accurately beyond
+  //those rated voltages and temperatures, I found it
+  //was better to cap them off at the sensor's limits
+  //instead of continuing to read and possibly give an
+  //inaccurate measurement of the tempurature.
+  
+  Serial.print(degreesC);
+  Serial.print(" C");
+
+  //This statement will print lines of data like this:
+  //"300 C" or "275 C"
+
+   
+  delay(100); //Rated response time of 100ms
+}
+
+
